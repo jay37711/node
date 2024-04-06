@@ -1,35 +1,40 @@
-const myUrl2 = window.location.href;
-const urlParams = new URL(myUrl2).searchParams;
-const password = urlParams.get('password');
-const name = urlParams.get('username');
+// const myUrl2 = window.location.href;
+// const urlParams = new URL(myUrl2).searchParams;
+const password = localStorage.getItem('password');
+const name = localStorage.getItem('username');
+const roomName = localStorage.getItem('roomname');
 const socket = io()
 const clientsTotal = document.getElementById('client-total')
+const room = document.getElementById('room-name')
 const username = document.getElementById('name-input')
 const userList = document.getElementById('user-list')
 
 
 
 window.addEventListener('load', function() {
-  if(password === '' || name === ''){
+  if(localStorage.getItem('username') == null){
+    window.location.href = 'index.html';
+  }
+  if(roomName === '' || name === ''){
     window.location.href = 'index.html';
   }else{
     username.value = name;
     const senddata = {
       name : name,
       password : password ,
-      dateTime: new Date()
+      dateTime: new Date(),
+      roomName : roomName,
     }
     socket.emit('authentication', senddata)
   }
 });
 
-socket.on('client-total', (data) => {
-    clientsTotal.innerText = `Total User: ${data}`
-});
-socket.on('user-details', (data) => {
+socket.on('roomUsers', (data) => {
+    clientsTotal.innerText = `Total User: ${data.users.length}`
+    room.innerText = `Room Name: ${data.room}`
     console.log(data)
     var element = '';
-    data.forEach(function (user) {
+    data.users.forEach(function (user) {
       element += `
         <li class="user-list-custom">
             <p class="message">
@@ -40,7 +45,6 @@ socket.on('user-details', (data) => {
           `
     });
     userList.innerHTML = element
-
 });
 
 const messageContainer = document.getElementById('message-container')
@@ -64,22 +68,25 @@ function sendMessage() {
         dateTime: new Date(),
       }
     socket.emit('message', data)
-    addMessageToUI(true, data)
+    // addMessageToUI(true, data)
     messageInput.value = ''
 }
 
-socket.on('chat-message', (data) => {
-    messageTone.play()
-    addMessageToUI(false, data)
+  socket.on('chat-message', (data) => {
+    if(data.username != name){
+      messageTone.play()
+    }
+    addMessageToUI(data.username == name ? true : false, data)
   })
 
   function addMessageToUI(isOwnMessage, data) {
+    console.log(data)
     clearFeedback();
     const element = `
         <li class="${isOwnMessage ? 'message-right' : 'message-left'}">
             <p class="message">
-              ${data.message}
-              <span>${data.name} ● ${moment(data.dateTime).fromNow()}</span>
+              ${data.text.message}
+              <span>${data.username == name ? 'you' : data.username} ● ${data.time}</span>
             </p>
           </li>
           `
@@ -95,13 +102,13 @@ socket.on('chat-message', (data) => {
 
   messageInput.addEventListener('focus', (e) => {
     socket.emit('feedback', {
-      feedback: `✍️ ${nameInput.value} is typing a message`,
+      feedback: nameInput.value,
     })
   })
   
   messageInput.addEventListener('keypress', (e) => {
     socket.emit('feedback', {
-      feedback: `✍️ ${nameInput.value} is typing a message`,
+      feedback: nameInput.value,
     })
   })
   messageInput.addEventListener('blur', (e) => {
@@ -112,12 +119,16 @@ socket.on('chat-message', (data) => {
 
   socket.on('feedback', (data) => {
     clearFeedback()
-    const element = `
-          <li class="message-feedback">
-            <p class="feedback" id="feedback">${data.feedback}</p>
-          </li>
-    `
-    messageContainer.innerHTML += element
+    if(data.feedback != name){
+      if(data.feedback){
+        const element = `
+                <li class="message-feedback">
+                  <p class="feedback" id="feedback">${data.feedback} is typing.....</p>
+                </li>
+          `
+          messageContainer.innerHTML += element
+      }
+    }
   })
   
   function clearFeedback() {
@@ -126,7 +137,22 @@ socket.on('chat-message', (data) => {
     })
   }
 
-//   socket.on('disconnect', function() {
-//     window.location.href = 'index.html';
-// });
-  
+
+ // Function to show modal
+ function showModal() {
+  document.getElementById("myModal").style.display = "block";
+}
+
+// Function to close modal
+function closeModal() {
+  document.getElementById("myModal").style.display = "none";
+}
+function leaveRoom() {
+  // Disconnect the socket
+  socket.disconnect();
+  localStorage.removeItem('username');
+  localStorage.removeItem('roomname');
+
+  // Redirect to index.html
+  window.location.href = "index.html";
+}

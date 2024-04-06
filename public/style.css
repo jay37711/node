@@ -167,3 +167,14 @@ body {
   left: 20px; /* Adjust this value as needed */
   top: 50px; /* Adjust this value as needed */
 }
+#leave-room-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #f00;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
