@@ -1,10 +1,23 @@
 const mysql = require('mysql');
+const os = require('os');
+const hostname = os.hostname();
+if(hostname == 'localhost'){
+  var host = 'localhost'
+  var user = 'root'
+  var password = ''
+  var databse = 'chit_chat'
+}else{
+  var host = 'bkormmq4wmbzhzke70o5-mysql.services.clever-cloud.com'
+  var user = 'utmkt20gg2hzslro'
+  var password = 'E2OU0cQ37eY0w0fj7BCm'
+  var databse = 'bkormmq4wmbzhzke70o5'
+}
 
 const db = mysql.createConnection({
-  host: 'bkormmq4wmbzhzke70o5-mysql.services.clever-cloud.com',
-  user: 'utmkt20gg2hzslro',
-  password: 'E2OU0cQ37eY0w0fj7BCm',
-  database: 'bkormmq4wmbzhzke70o5'
+  host: host,
+  user: user,
+  password: password,
+  database: databse
 });
 
 db.connect((err) => {
