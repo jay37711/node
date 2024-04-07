@@ -2,11 +2,12 @@ const mysql = require('../config/db');
 const bcrypt = require('bcrypt');
 const util = require('util');
 const crypto = require('crypto');
-
+const os = require('os');
+const hostname = os.hostname();
 const queryAsync = util.promisify(mysql.query).bind(mysql);
 
 exports.create_room = async (req, res) => {
-  console.log(req.body);
+  console.log('hostname',hostname);
 
   const username = req.body.username;
   const password = req.body.password;
